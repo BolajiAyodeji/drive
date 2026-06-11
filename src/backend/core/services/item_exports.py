@@ -6,14 +6,17 @@ from zipstream import ZipStream
 
 from core import models
 
-DEFAULT_STORAGE_READ_CHUNK_SIZE = 1024
+DEFAULT_STORAGE_READ_CHUNK_SIZE = 64 * 1024
 
 
 def iter_storage_chunks(file_key, chunk_size=DEFAULT_STORAGE_READ_CHUNK_SIZE):
     """Yield bytes from object storage without buffering the whole file."""
-    with default_storage.open(file_key, "rb") as fh:
-        while chunk := fh.read(chunk_size):
-            yield chunk
+    # default_storage.open() would download the whole object in memory before
+    # the first read, so stream straight from the boto3 response body instead.
+    s3_client = default_storage.connection.meta.client
+    bucket_name = default_storage.bucket_name
+    response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
+    yield from response["Body"].iter_chunks(chunk_size)
 
 
 def export_descendants(folder):

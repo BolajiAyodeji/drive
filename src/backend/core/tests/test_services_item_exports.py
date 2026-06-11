@@ -2,6 +2,7 @@
 
 import uuid
 from io import BytesIO
+from unittest import mock
 
 from django.core.files.storage import default_storage
 
@@ -41,6 +42,18 @@ def test_services_item_exports_iter_storage_chunks_respects_chunk_size(stored_bl
     assert len(chunks) > 1
     assert all(len(chunk) <= 8 for chunk in chunks)
     assert b"".join(chunks) == payload
+
+
+def test_services_item_exports_iter_storage_chunks_streams_without_full_download(stored_blob):
+    """Chunks come from a streamed S3 response, not a full in-memory download."""
+    key, payload = stored_blob
+
+    with mock.patch(
+        "storages.backends.s3.S3File.file",
+        new_callable=mock.PropertyMock,
+        side_effect=AssertionError("default_storage buffered the whole file in memory"),
+    ):
+        assert b"".join(iter_storage_chunks(key)) == payload
 
 
 def test_services_item_exports_iter_storage_chunks_empty_file():

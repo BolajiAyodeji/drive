@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 🐛(backend) stream export files from S3 without buffering
+
 ## [v0.19.0] - 2026-06-09
 
 ### Added
