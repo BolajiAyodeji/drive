@@ -56,6 +56,13 @@ def test_services_item_exports_iter_storage_chunks_streams_without_full_download
         assert b"".join(iter_storage_chunks(key)) == payload
 
 
+def test_services_item_exports_iter_storage_chunks_missing_object():
+    """A key missing from object storage yields no chunks instead of raising."""
+    key = f"test/iter_storage_chunks-missing-{uuid.uuid4()}.bin"
+
+    assert not list(iter_storage_chunks(key))
+
+
 def test_services_item_exports_iter_storage_chunks_empty_file():
     """An empty stored file yields no chunks."""
     key = f"test/iter_storage_chunks-empty-{uuid.uuid4()}.bin"

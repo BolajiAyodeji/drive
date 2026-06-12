@@ -1,10 +1,14 @@
 """Service for exporting item folders as streaming ZIP archives."""
 
+import logging
+
 from django.core.files.storage import default_storage
 
 from zipstream import ZipStream
 
 from core import models
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_STORAGE_READ_CHUNK_SIZE = 64 * 1024
 
@@ -15,7 +19,14 @@ def iter_storage_chunks(file_key, chunk_size=DEFAULT_STORAGE_READ_CHUNK_SIZE):
     # the first read, so stream straight from the boto3 response body instead.
     s3_client = default_storage.connection.meta.client
     bucket_name = default_storage.bucket_name
-    response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
+    try:
+        response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
+    except s3_client.exceptions.NoSuchKey:
+        # A database row references an object that is gone from storage:
+        # aborting would make the folder export fail forever, so keep the
+        # archive going with an empty entry for this file.
+        logger.warning("Export: object %s is missing from storage, skipped", file_key)
+        return
     yield from response["Body"].iter_chunks(chunk_size)
 
 
