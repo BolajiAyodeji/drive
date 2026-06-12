@@ -26,7 +26,7 @@
 # La Suite Drive: Collaborative File Sharing
 **LaSuite Drive, where your files become collaborative assets through seamless teamwork.**
 
-<img src="/docs/assets/drive-UI.png" width="100%" align="center"/>
+<img src="/docs/assets/Drive_screenshot.png" width="100%" align="center"/>
 
 LaSuite Drive is an open-source tool focused on file storage, editing and sharing with granular access control.
 
